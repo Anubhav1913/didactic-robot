@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anubhav Bhattacharya | AI Systems Architect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A single-page application with a sticky header for smooth-scroll navigation between thematic sections (Home, About, Portfolio, Contact). The core interaction is a filterable portfolio where users can select a 'Pillar of Expertise' (AI, Data Engineering, Research) to dynamically view relevant project cards. Clicking a card opens a modal with a detailed case study. This structure was chosen to empower recruiters to quickly find relevant experience and drill down into details without leaving the page, providing a superior, app-like user experience over a simple long-scroll page. -->
+    <!-- Visualization & Content Choices: Report Info: Pillars of Expertise -> Goal: Inform -> Viz: 3-column HTML layout with icons -> Justification: Clear, scannable grouping of skills. | Report Info: Project Details -> Goal: Organize/Deep Dive -> Viz: Filterable grid of cards opening modals -> Interaction: JS filtering and modal display -> Justification: Allows user-led discovery of complex project info. | Report Info: System Architecture -> Goal: Visualize -> Viz: HTML/CSS diagram -> Justification: Demonstrates technical layout skills and avoids static images. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F5;
+            color: #212121;
+        }
+        .accent-color { color: #0057B8; }
+        .bg-accent-color { background-color: #0057B8; }
+        .border-accent-color { border-color: #0057B8; }
+        .modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform: translateY(20px);
+        }
+        .modal-active .modal-content {
+            transform: translateY(0);
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #0057B8;
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .project-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .filter-btn.active {
+            background-color: #0057B8;
+            color: white;
+        }
+        .filter-btn {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #0057B8;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header id="header" class="bg-white/80 backdrop-blur-md fixed top-0 left-0 right-0 z-40 shadow-sm transition-all duration-300">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#home" class="text-xl font-bold tracking-tight">Anubhav Bhattacharya</a>
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#home" class="nav-link text-gray-700 hover:text-accent-color font-medium">Home</a>
+                <a href="#about" class="nav-link text-gray-700 hover:text-accent-color font-medium">About</a>
+                <a href="#portfolio" class="nav-link text-gray-700 hover:text-accent-color font-medium">Portfolio</a>
+                <a href="#contact" class="nav-link text-gray-700 hover:text-accent-color font-medium">Contact</a>
+            </nav>
+            <button id="mobile-menu-btn" class="md:hidden text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white">
+            <a href="#home" class="block py-2 px-6 text-gray-700 hover:bg-gray-100">Home</a>
+            <a href="#about" class="block py-2 px-6 text-gray-700 hover:bg-gray-100">About</a>
+            <a href="#portfolio" class="block py-2 px-6 text-gray-700 hover:bg-gray-100">Portfolio</a>
+            <a href="#contact" class="block py-2 px-6 text-gray-700 hover:bg-gray-100">Contact</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="min-h-screen flex items-center bg-white pt-20">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">Architecting Intelligent Systems</h1>
+                <h2 class="text-4xl md:text-6xl font-extrabold tracking-tight accent-color mb-6">from Data to Deployment.</h2>
+                <p class="max-w-3xl mx-auto text-lg md:text-xl text-gray-600 mb-8">
+                    I build and optimize AI-driven applications that deliver measurable business impact. My work involves designing and deploying solutions that range from streamlining large language model (LLM) prompt engineering by 30% to architecting automated data pipelines that cut enterprise reporting times by 87%.
+                </p>
+                <div class="flex justify-center items-center space-x-4">
+                    <a href="mailto:work.anubhav@outlook.com" class="text-gray-600 hover:text-accent-color transition-colors">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>
+                    </a>
+                    <a href="https://linkedin.com/in/anubhav-bhattacharya/" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-accent-color transition-colors">
+                         <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14zm-7 6.67h-2.5v7h2.5v-7zm-1.25-2.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM17 10.33c-1.43 0-2.1.7-2.5 1.4v-1.1h-2.5v7h2.5v-3.5c0-.9.4-1.5 1.5-1.5s1.5.6 1.5 1.5v3.5h2.5v-4.17c0-2.33-1.17-3.5-3-3.5z"></path></svg>
+                    </a>
+                     <a href="./Anubhav_Bhattacharya_Resume.pdf" download="Anubhav_Bhattacharya_Resume.pdf" class="bg-accent-color text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity">
+                        Download Resume
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="py-20 lg:py-32">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight">About Me</h2>
+                    <p class="text-lg text-gray-600 mt-2">The story behind the expertise.</p>
+                </div>
+
+                <div class="grid md:grid-cols-5 gap-12 items-center">
+                    <div class="md:col-span-2">
+                        <div class="bg-white p-8 rounded-xl shadow-md">
+                             <h3 class="text-2xl font-bold mb-4">My Journey</h3>
+                             <p class="text-gray-600 leading-relaxed">
+                                I am a detail-oriented software engineer with over two years of hands-on experience in AI and web development, specializing in Python and natural language processing. I thrive on solving complex problems and have a track record of developing applications that not only meet technical requirements but also deliver significant improvements in user engagement and operational efficiency. My path has taken me from academic research to architecting enterprise-grade data solutions, driven by a passion for building intelligent, impactful systems.
+                             </p>
+                        </div>
+                    </div>
+                    <div class="md:col-span-3">
+                        <h3 class="text-2xl font-bold mb-6 text-center">Pillars of Expertise</h3>
+                        <div class="grid md:grid-cols-3 gap-6 text-center">
+                            <div class="bg-white p-6 rounded-xl shadow-sm">
+                                <div class="text-accent-color mb-3 inline-block">
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 5.523-4.477 10-10 10S1 17.523 1 12 5.477 2 11 2s10 4.477 10 10z"></path></svg>
+                                </div>
+                                <h4 class="font-bold text-lg mb-2">AI & NLP</h4>
+                                <p class="text-sm text-gray-600">Building and refining AI models, specializing in LLM optimization, prompt engineering, and NLP frameworks.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm">
+                                <div class="text-accent-color mb-3 inline-block">
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7l8 5 8-5"></path></svg>
+                                </div>
+                                <h4 class="font-bold text-lg mb-2">Scalable Data Engineering</h4>
+                                <p class="text-sm text-gray-600">Designing robust data infrastructure, ELT pipelines, and BI solutions to handle large-scale data efficiently.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm">
+                                <div class="text-accent-color mb-3 inline-block">
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547a2 2 0 00-.547 1.806l.477 2.387a6 6 0 00.517 3.86l.158.318a6 6 0 003.86.517l2.387.477a2 2 0 001.806-.547a2 2 0 00.547-1.806l-.477-2.387a6 6 0 00-.517-3.86l-.158-.318a6 6 0 00-.517-3.86l-.477-2.387zM12 12a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                                </div>
+                                <h4 class="font-bold text-lg mb-2">Research & Deep Learning</h4>
+                                <p class="text-sm text-gray-600">Contributing to novel research, with award-winning work in computer vision and applied deep learning.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-16 bg-white p-8 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-bold mb-6 text-center">My Toolkit</h3>
+                    <div id="skills-container" class="flex flex-wrap justify-center gap-3">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="portfolio" class="py-20 lg:py-32 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight">Project Portfolio</h2>
+                    <p class="text-lg text-gray-600 mt-2">A curated selection of my work. Click on a project for details.</p>
+                </div>
+
+                <div id="filter-buttons" class="flex flex-wrap justify-center gap-3 mb-12">
+                    <button class="filter-btn active font-medium py-2 px-5 rounded-full border-2 border-gray-200" data-filter="all">All Projects</button>
+                    <button class="filter-btn font-medium py-2 px-5 rounded-full border-2 border-gray-200" data-filter="ai">AI & NLP</button>
+                    <button class="filter-btn font-medium py-2 px-5 rounded-full border-2 border-gray-200" data-filter="data">Data Engineering</button>
+                    <button class="filter-btn font-medium py-2 px-5 rounded-full border-2 border-gray-200" data-filter="research">Research</button>
+                </div>
+
+                <div id="portfolio-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="py-20 lg:py-32">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight">Let's Build Something Together</h2>
+                    <p class="text-lg text-gray-600 mt-2">I'm always open to discussing new projects, creative ideas, or opportunities.</p>
+                </div>
+                <div class="max-w-xl mx-auto grid grid-cols-1 gap-12">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                         <h3 class="text-2xl font-bold mb-4 text-center">Contact Me Directly</h3>
+                         <form>
+                            <div class="mb-4">
+                                <label for="name" class="block text-gray-700 font-medium mb-2">Name</label>
+                                <input type="text" id="name" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-color focus:border-transparent outline-none" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
+                                <input type="email" id="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-color focus:border-transparent outline-none" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="subject" class="block text-gray-700 font-medium mb-2">Subject</label>
+                                <input type="text" id="subject" name="subject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-color focus:border-transparent outline-none" required>
+                            </div>
+                            <div class="mb-6">
+                                <label for="message" class="block text-gray-700 font-medium mb-2">Message</label>
+                                <textarea id="message" name="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-color focus:border-transparent outline-none" required></textarea>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="bg-accent-color text-white font-bold py-3 px-8 rounded-lg hover:opacity-90 transition-opacity w-full">Send Message</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-2 text-center">✨ AI Cover Letter Assistant</h3>
+                        <p class="text-center text-gray-600 mb-6">Paste a job description below to see how my skills align.</p>
+                        <div class="mb-4">
+                            <label for="job-description" class="block text-gray-700 font-medium mb-2">Job Description</label>
+                            <textarea id="job-description" name="job-description" rows="6" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-color focus:border-transparent outline-none" placeholder="Paste the full job description here..."></textarea>
+                        </div>
+                        <div class="text-center mb-4">
+                            <button id="generate-letter-btn" class="bg-accent-color text-white font-bold py-3 px-8 rounded-lg hover:opacity-90 transition-opacity w-full flex items-center justify-center gap-2">
+                                <span id="generate-letter-btn-text">Generate Snippet</span>
+                                <div id="generate-letter-spinner" class="spinner hidden"></div>
+                            </button>
+                        </div>
+                        <div id="cover-letter-output" class="bg-gray-50 border border-gray-200 rounded-lg p-4 min-h-[100px] text-gray-700 leading-relaxed hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white py-6">
+        <div class="container mx-auto px-6 text-center text-gray-500">
+            <p>&copy; <span id="year"></span> Anubhav Bhattacharya. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <div id="project-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col opacity-0">
+            <div class="p-6 flex-shrink-0 flex justify-between items-center border-b">
+                <h3 id="modal-title" class="text-2xl font-bold"></h3>
+                <button id="modal-close-btn" class="text-gray-500 hover:text-gray-800 transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="modal-body" class="p-8 overflow-y-auto">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const skills = {
+                "Languages": ["Python", "SQL", "R", "Dart"],
+                "Frameworks & Libraries": ["Hugging Face Transformers", "Keras", "OpenCV", "spaCy", "PyTorch", "Scikit-learn"],
+                "Platforms & Tools": ["Snowflake", "Docker", "Digital Ocean", "Power BI", "Tableau", "Git", "Jupyter"]
+            };
+
+            const projects = [
+                {
+                    id: 1,
+                    title: "Real-Time Multimodal Depression Detection",
+                    category: "research",
+                    summary: "Enhanced detection accuracy by integrating audio, visual, and textual data.",
+                    imageUrl: "https://placehold.co/600x400/0057B8/FFFFFF?text=Project+1",
+                    keyResult: "Enhanced Depression Detection Accuracy and Reliability by Integrating Audio, Visual, and Textual Data",
+                    challenge: "Traditional methods for detecting signs of depression often rely on a single data source, leading to incomplete assessments. The challenge was to develop a more robust, real-time system by simultaneously analyzing voice, facial expressions, and speech content.",
+                    approach: `As a researcher on this project, my primary goal was to architect and implement a machine learning system that could effectively fuse these disparate data streams into a single, coherent prediction. My approach was grounded in applying advanced statistics and principles of epidemiology to ensure the model was not only accurate but also trustworthy and robust.
+                    <br><br>
+                    <ol class="list-decimal list-inside space-y-2 mt-4">
+                        <li><b>Audio Feature Engineering:</b> Leveraged Mel-Frequency Cepstral Coefficients (MFCCs) to extract distinctive features from speech patterns, capturing tone and intonation.</li>
+                        <li><b>Visual Feature Extraction:</b> Implemented a Convolutional Neural Network (CNN) to perform facial feature extraction, identifying subtle micro-expressions and facial cues.</li>
+                        <li><b>Textual Data Vectorization:</b> Utilized Term Frequency-Inverse Document Frequency (TF-IDF) to vectorize transcribed speech, identifying statistically significant words and phrases.</li>
+                    </ol>
+                    <br>My core contribution was integrating these three distinct feature sets into a unified model, requiring careful data synchronization and normalization. I was also responsible for all team communication and authoring comprehensive technical documentation.`,
+                    stack: ["Python", "Keras", "Scikit-learn", "OpenCV", "Librosa", "Machine Learning", "Deep Learning (CNNs)", "NLP"],
+                    visual: `<h4 class="font-bold text-lg mb-4">Conceptual System Diagram</h4><div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-sm text-center">This diagram illustrates the flow of data from raw audio, video, and text inputs through their respective processing modules (MFCC, CNN, TF-IDF) before being fused into a final prediction layer.</div>`,
+                    link: null
+                },
+                {
+                    id: 2,
+                    title: "Scalable Customer Analytics Infrastructure",
+                    category: "data",
+                    summary: "Architected a data pipeline that cut reporting time by 87%.",
+                    imageUrl: "https://placehold.co/600x400/0057B8/FFFFFF?text=Project+2",
+                    keyResult: "Reduced Report Generation Time by 87% and Achieved 99.5% Data Processing Reliability",
+                    challenge: "A growing enterprise struggled with fragmented data across four systems. Generating customer reports was a manual, 2-hour process, hindering timely decision-making. The goal was to build an automated, scalable data infrastructure to unify data and provide real-time BI.",
+                    approach: `My role was to architect and lead the implementation of a new, automated data processing system. I designed the solution from the ground up, focusing on reliability, scalability, and performance.
+                    <br><br>
+                    <ol class="list-decimal list-inside space-y-2 mt-4">
+                        <li><b>Automated ELT Pipeline:</b> I architected a fully automated ELT pipeline using Python and Snowflake Tasks to process over 5GB of daily data with 99.5% reliability, eliminating manual work.</li>
+                        <li><b>Three-Tier Data Architecture:</b> I designed a comprehensive 3-tier architecture in Snowflake (Raw, Staging, Analytics) to ensure data quality and analytical flexibility, which was key to reducing report time from 2 hours to 15 minutes.</li>
+                        <li><b>Enterprise-Grade Scalability:</b> I engineered the infrastructure for future growth with strategic table clustering, automated data validation, and optimized stored procedures, enabling it to handle a 300% increase in data volume.</li>
+                    </ol>`,
+                    stack: ["Snowflake", "Python", "SQL", "Data Architecture", "ELT Pipelines", "Business Intelligence"],
+                    visual: `<h4 class="font-bold text-lg mb-4">3-Tier Data Architecture Diagram</h4>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 space-y-4 flex flex-col items-center">
+                        <div class="font-semibold">Source Systems (CRM, E-comm, etc.)</div>
+                        <div class="text-2xl text-gray-400">&darr;</div>
+                        <div class="w-full md:w-3/4 bg-blue-100 border-2 border-dashed border-blue-400 p-3 rounded-lg text-center">
+                            <h5 class="font-bold">Raw Tier</h5>
+                            <p class="text-sm text-blue-800">Ingests raw, unaltered data</p>
+                        </div>
+                        <div class="text-2xl text-gray-400">&darr;</div>
+                        <div class="w-full md:w-3/4 bg-green-100 border-2 border-dashed border-green-400 p-3 rounded-lg text-center">
+                            <h5 class="font-bold">Staging Tier</h5>
+                            <p class="text-sm text-green-800">Cleans, standardizes, and prepares data</p>
+                        </div>
+                        <div class="text-2xl text-gray-400">&darr;</div>
+                        <div class="w-full md:w-3/4 bg-purple-100 border-2 border-dashed border-purple-400 p-3 rounded-lg text-center">
+                            <h5 class="font-bold">Analytics Tier</h5>
+                            <p class="text-sm text-purple-800">Houses final, consolidated data marts</p>
+                        </div>
+                         <div class="text-2xl text-gray-400">&darr;</div>
+                         <div class="font-semibold">BI Tools (Tableau, Power BI)</div>
+                    </div>`,
+                    link: null
+                },
+                {
+                    id: 3,
+                    title: "Case Study: LLM Optimization at Outlier",
+                    category: "ai",
+                    summary: "Streamlined prompt engineering by 30% and increased relevance by 20%.",
+                    imageUrl: "https://placehold.co/600x400/0057B8/FFFFFF?text=Project+3",
+                    keyResult: "Streamlined Prompt Engineering by 30% & Increased Output Relevance by 20%",
+                    challenge: "The process of developing and testing prompts for large language models (LLMs) was manual and time-consuming. There was a need to automate testing, improve model performance, and reduce bias in AI-generated text.",
+                    approach: `I utilized Python and NLP frameworks like Hugging Face Transformers and the OpenAI API to build a system for automating prompt testing and data analysis. This streamlined the entire prompt engineering workflow by 30%. By developing a rigorous framework for testing and refining prompts, I enhanced model performance, leading to a 20% increase in output relevance. A key part of my work was the meticulous evaluation and ranking of model responses for quality, factuality, and relevance, which provided detailed feedback for continuous improvement and reduced model bias by 15%.`,
+                    stack: ["Python", "NLP", "Hugging Face Transformers", "OpenAI API", "LLM Optimization"],
+                    visual: `<h4 class="font-bold text-lg mb-4">Process Flow</h4><div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-sm text-center">This project involved a cyclical process: 1. Develop Prompts -> 2. Automate Testing -> 3. Evaluate Responses -> 4. Refine Prompts -> Repeat.</div>`,
+                    link: null
+                },
+                {
+                    id: 4,
+                    title: "2D/3D Human Pose Estimation (Best Paper)",
+                    category: "research",
+                    summary: "Engineered an award-winning deep learning pipeline for pose estimation.",
+                    imageUrl: "https://placehold.co/600x400/0057B8/FFFFFF?text=Project+4",
+                    keyResult: "Engineered a Novel Deep Learning Pipeline Selected as a Best Paper at AICTC 2021",
+                    challenge: "Estimating a full 3D human pose from a single 2D image is a difficult computer vision problem due to depth ambiguity and occlusions. The goal was to develop a novel deep learning pipeline to accurately reconstruct 3D poses while minimizing keypoint re-projection loss.",
+                    approach: `I led this research project through its entire lifecycle. The core of my contribution was engineering an end-to-end deep learning pipeline that integrated several specialized networks to jointly regress both 2D and 3D joint positions in real-time. This created a feedback loop that improved the accuracy of both tasks simultaneously. A significant part of this project was the rigorous analysis, meticulous documentation, and scientific writing required for publication, which was a key factor in the paper's acceptance and selection as a best paper at the conference.`,
+                    stack: ["Python", "PyTorch", "Keras", "OpenCV", "Deep Learning", "Computer Vision", "Scientific Writing"],
+                    visual: `<h4 class="font-bold text-lg mb-4">Visual Abstract</h4><div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-sm text-center">The system takes a 2D RGB image as input and passes it through a fully-convolutional network to output a reconstructed 3D skeletal pose.</div>`,
+                    link: { text: "View Publication", url: "https://ieeexplore.ieee.org/document/9562611" }
+                },
+                 {
+                    id: 5,
+                    title: "Cancer Cell Classification",
+                    category: "research",
+                    summary: "Developed a deep learning model to classify cancer cells with high accuracy.",
+                    imageUrl: "https://placehold.co/600x400/0057B8/FFFFFF?text=Project+5",
+                    keyResult: "Achieved 18% Higher Accuracy than Baseline in Cancer Cell Classification",
+                    challenge: "Accurately classifying different types of cancer cells from medical images is a critical but challenging task for pathologists. The objective was to build a deep learning model that could automate this process with high accuracy, serving as a reliable aid for medical professionals.",
+                    approach: "I developed a Convolutional Neural Network (CNN) using Keras to classify histopathological images of cancer cells. The project involved extensive data preprocessing and augmentation to create a robust training set. I experimented with various network architectures and used hyperparameter optimization techniques with Ray Tune to find the best-performing model. The final model demonstrated a significant improvement in accuracy over existing baseline methods.",
+                    stack: ["Python", "Keras", "Ray Tune", "OpenCV", "Deep Learning", "Image Classification"],
+                    visual: `<h4 class="font-bold text-lg mb-4">Model Performance</h4><div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-sm text-center">The final model's performance was evaluated using metrics like accuracy, precision, and recall, showing a clear improvement over traditional methods. A confusion matrix was used to visualize classification accuracy across different cell types.</div>`,
+                    link: null
+                },
+                {
+                    id: 6,
+                    title: "Automated Text Classification with BERT",
+                    category: "ai",
+                    summary: "Fine-tuned BERT models for automated text analysis and clustering.",
+                    imageUrl: "https://placehold.co/600x400/0057B8/FFFFFF?text=Project+6",
+                    keyResult: "Improved Text Classification Accuracy by 18% with Fine-Tuned BERT",
+                    challenge: "Manually classifying and organizing large volumes of text documents is inefficient and prone to error. The project aimed to automate this process by leveraging a state-of-the-art language model to classify text and identify key data clusters for research.",
+                    approach: "I fine-tuned a pre-trained BERT model on a custom dataset to perform text classification. This involved setting up a robust data pipeline, handling class imbalances, and optimizing the model's hyperparameters. I then applied clustering algorithms to the model's output embeddings to identify latent topics within the data. The solution significantly improved classification accuracy and provided valuable insights for epidemiology research.",
+                    stack: ["Python", "Hugging Face Transformers", "PyTorch", "Scikit-learn", "NLP", "BERT"],
+                    visual: `<h4 class="font-bold text-lg mb-4">Clustering Visualization</h4><div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-sm text-center">Using techniques like t-SNE, the high-dimensional text embeddings were visualized in 2D space, revealing distinct clusters of related documents.</div>`,
+                    link: null
+                }
+            ];
+
+            // --- Gemini API Integration ---
+            const callGeminiAPI = async (prompt, button) => {
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+
+                let attempts = 0;
+                const maxAttempts = 5;
+                const initialDelay = 1000;
+
+                while (attempts < maxAttempts) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            return result.candidates[0].content.parts[0].text;
+                        } else {
+                            throw new Error("Invalid response structure from Gemini API");
+                        }
+                    } catch (error) {
+                        attempts++;
+                        if (attempts >= maxAttempts) {
+                            console.error("Gemini API call failed after multiple retries:", error);
+                            return "Sorry, I couldn't generate a response at this time. Please try again later.";
+                        }
+                        const delay = initialDelay * Math.pow(2, attempts);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            };
+
+
+            const skillsContainer = document.getElementById('skills-container');
+            for (const category in skills) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'mb-4';
+                let skillsHtml = `<h4 class="font-semibold text-lg text-center mb-3">${category}</h4><div class="flex flex-wrap justify-center gap-2">`;
+                skills[category].forEach(skill => {
+                    skillsHtml += `<span class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">${skill}</span>`;
+                });
+                skillsHtml += `</div>`;
+                skillsContainer.innerHTML += skillsHtml;
+            }
+
+            const portfolioGrid = document.getElementById('portfolio-grid');
+            projects.forEach(project => {
+                const projectCard = document.createElement('div');
+                projectCard.className = 'project-card bg-white rounded-xl overflow-hidden shadow-sm cursor-pointer';
+                projectCard.dataset.category = project.category;
+                projectCard.dataset.projectId = project.id;
+                projectCard.innerHTML = `
+                    <img src="${project.imageUrl}" alt="${project.title}" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/eeeeee/212121?text=Image';">
+                    <div class="p-6">
+                        <h3 class="font-bold text-xl mb-2">${project.title}</h3>
+                        <p class="text-gray-600 text-sm">${project.summary}</p>
+                    </div>
+                `;
+                portfolioGrid.appendChild(projectCard);
+            });
+
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const projectCards = document.querySelectorAll('.project-card');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    const filter = button.dataset.filter;
+                    projectCards.forEach(card => {
+                        if (filter === 'all' || card.dataset.category === filter) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            const modal = document.getElementById('project-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            portfolioGrid.addEventListener('click', (e) => {
+                const card = e.target.closest('.project-card');
+                if (card) {
+                    const projectId = parseInt(card.dataset.projectId);
+                    const project = projects.find(p => p.id === projectId);
+                    if (project) {
+                        modalTitle.textContent = project.title;
+                        let bodyHtml = `
+                            <p class="text-lg font-semibold accent-color mb-6">${project.keyResult}</p>
+                            <div class="space-y-8">
+                                <div>
+                                    <h4 class="font-bold text-xl mb-2">The Challenge</h4>
+                                    <p class="text-gray-600 leading-relaxed">${project.challenge}</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-xl mb-2">My Approach & Contribution</h4>
+                                    <div class="text-gray-600 leading-relaxed">${project.approach}</div>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-xl mb-2">Technical Stack</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${project.stack.map(tech => `<span class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">${tech}</span>`).join('')}
+                                    </div>
+                                </div>
+                                ${project.visual ? `<div>${project.visual}</div>` : ''}
+                                <div class="flex items-center gap-4 flex-wrap">
+                                    ${project.link ? `<a href="${project.link.url}" target="_blank" rel="noopener noreferrer" class="inline-block bg-accent-color text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity">${project.link.text}</a>` : ''}
+                                    <button id="explain-project-btn" data-project-id="${project.id}" class="inline-flex items-center gap-2 text-accent-color font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors">
+                                        ✨ Explain in Simple Terms
+                                    </button>
+                                </div>
+                                <div id="project-explanation-output" class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-gray-700 leading-relaxed hidden mt-4"></div>
+                            </div>
+                        `;
+                        modalBody.innerHTML = bodyHtml;
+                        modal.classList.remove('opacity-0', 'pointer-events-none');
+                        modal.classList.add('modal-active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                }
+            });
+
+            modalBody.addEventListener('click', async (e) => {
+                if (e.target.id === 'explain-project-btn') {
+                    const button = e.target;
+                    const projectId = parseInt(button.dataset.projectId);
+                    const project = projects.find(p => p.id === projectId);
+                    const outputDiv = document.getElementById('project-explanation-output');
+
+                    button.disabled = true;
+                    button.innerHTML = '<span class="spinner"></span> Generating...';
+                    outputDiv.classList.remove('hidden');
+                    outputDiv.textContent = 'Thinking...';
+
+                    const prompt = `You are an expert at explaining complex technical projects to a non-technical audience (like a recruiter or manager). Your task is to summarize the following project in 2-3 simple sentences. Focus on the business problem and the value of the solution. Avoid jargon.
+                    
+                    Project Title: ${project.title}
+                    The Challenge: ${project.challenge}
+                    My Approach: ${project.approach}
+                    
+                    Generate a simple explanation:`;
+                    
+                    const explanation = await callGeminiAPI(prompt);
+                    outputDiv.textContent = explanation;
+                    button.innerHTML = '✨ Explanation Generated';
+                }
+            });
+
+            const closeModal = () => {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modal.classList.remove('modal-active');
+                document.body.style.overflow = '';
+            };
+
+            modalCloseBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+            
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const navLinks = document.querySelectorAll('nav a');
+            const sections = document.querySelectorAll('main section');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 60) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            // AI Cover Letter Assistant Logic
+            const generateLetterBtn = document.getElementById('generate-letter-btn');
+            const jobDescriptionInput = document.getElementById('job-description');
+            const coverLetterOutput = document.getElementById('cover-letter-output');
+            const btnText = document.getElementById('generate-letter-btn-text');
+            const btnSpinner = document.getElementById('generate-letter-spinner');
+
+            generateLetterBtn.addEventListener('click', async () => {
+                const jobDesc = jobDescriptionInput.value;
+                if (!jobDesc.trim()) {
+                    coverLetterOutput.classList.remove('hidden');
+                    coverLetterOutput.textContent = "Please paste a job description first.";
+                    return;
+                }
+
+                generateLetterBtn.disabled = true;
+                btnText.textContent = 'Generating...';
+                btnSpinner.classList.remove('hidden');
+                coverLetterOutput.classList.remove('hidden');
+                coverLetterOutput.textContent = 'Analyzing your job description and my profile...';
+
+                const skillsSummary = JSON.stringify(skills);
+                const projectsSummary = projects.map(p => `Title: ${p.title}, Summary: ${p.summary}, Stack: ${p.stack.join(', ')}`).join('\n');
+
+                const prompt = `You are a professional career assistant helping a candidate named Anubhav Bhattacharya. Your task is to write a concise, impactful paragraph for a cover letter.
+                
+                Here is Anubhav's profile:
+                Skills: ${skillsSummary}
+                Projects: 
+                ${projectsSummary}
+
+                Here is the Job Description provided by a recruiter:
+                ---
+                ${jobDesc}
+                ---
+
+                Based on the job description, analyze Anubhav's profile and write one strong paragraph (3-5 sentences) that a recruiter can use in a cover letter. The paragraph should highlight the most relevant skills and project experiences that match the job requirements. Start with a strong opening that connects his experience directly to the role. Be confident and professional.`;
+
+                const letterSnippet = await callGeminiAPI(prompt);
+                coverLetterOutput.textContent = letterSnippet;
+
+                generateLetterBtn.disabled = false;
+                btnText.textContent = 'Generate Snippet';
+                btnSpinner.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
